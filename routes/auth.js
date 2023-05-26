@@ -1,6 +1,6 @@
 const express = require('express');
 const User = require('../Models/User');
-
+//we are using express validators
 const { body, validationResult } = require('express-validator');
 
 
@@ -8,13 +8,14 @@ const router = express.Router();
 
 
 //create a user using POST using "/api/auth/createuser"
+//ye sab mene express validator se uthaya
 
 router.post('/createuser', [
     body('name','Enter a valid name').isLength({ min: 3 }),
     body('email','Enter a valid email').isEmail(),
     body('password','Enter a valid password').isLength({ min: 5 }),
 ], async(req, res) => {
-    const errors = validationResult(req);
+    const errors = validationResult(req);  //yaha mai errors ko manage karri hu
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     } //It is a kind of validation layer
