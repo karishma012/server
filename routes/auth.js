@@ -58,8 +58,48 @@ router.post('/createuser', [
         res.json({ authtoken })
     } catch (error) {
         console.log(error.message);
-        res.status(500).send("some error occured");
+        res.status(500).send("Internal Server error occured");
     }
 
 })
+//now here we r going to create a similar page for login, here only email and password will be required so everything is copied and pasted
+
+router.post('/login', [
+
+    body('email', 'Enter a valid email').isEmail(),
+    body('password', 'password cannot be blank').exists(),
+], async (req, res) => {
+
+    const errors = validationResult(req);  //yaha mai errors ko manage karri hu
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    const { email, password } = req.body;
+    try {
+        let user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ error: "please try to login with correct credentials" });
+        }
+        const passwordCompare = await bcrypt.compare(password, user.password);
+        //agar vo hamare haspassword ke equal nahi hua
+        if (!passwordCompare) {
+            return res.status(400).json({ error: "please try to login with correct credentials" });
+        }
+        const data = {
+            user: {
+                id: user.id
+            }
+        };
+        const authtoken = jwt.sign(data, JWT_SECRET);
+
+        // res.json(user)
+        res.json({ authtoken })
+
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send("Internal Server error occured");
+    }
+
+})
+
 module.exports = router
