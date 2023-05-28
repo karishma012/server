@@ -2,7 +2,7 @@ const connectToMongo = require('./db');
 const express = require('express')
 const app = express()
 const port = 3500
-
+//yaha mene basic sa express ka syntax copy kiya hai
 app.use(express.json())
 //add a middleware for connection of db to server(terminal)
 

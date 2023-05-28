@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+//yaha mene mere mongo db ko mongoose s connect karwaya hai jo ki server s bi connected hai
 
 //api ko fetch karne k lie we r using callback,promise functions
 
