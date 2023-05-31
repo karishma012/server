@@ -47,6 +47,7 @@ router.post('/createuser', [
         // })
         //m user ki id bejungi token ke through...id bejke sb sambhal jayega
         //basically yaha web token ki help se verifivation ho raha hai
+        //basically yaha tokens ka usage hai
         const data = {
             user: {
                 id: user.id
@@ -82,6 +83,7 @@ router.post('/login', [
         if (!user) {
             return res.status(400).json({ error: "please try to login with correct credentials" });
         }
+        //yaha hum password ko database vale password se compare kar rahe hai
         //ek baar password ke lie
         const passwordCompare = await bcrypt.compare(password, user.password);
         //agar vo hamare haspassword ke equal nahi hua
@@ -89,6 +91,7 @@ router.post('/login', [
             return res.status(400).json({ error: "please try to login with correct credentials" });
         }
         //verification
+        //again JWT ka usage
         const data = {
             user: {
                 id: user.id
@@ -105,7 +108,8 @@ router.post('/login', [
     }
 
 })
-//ROUTE :3 get user details . here are finding user by id..sab kuch id se hi hoga
+//ROUTE :3 get user details . here we are finding user by id..sab kuch id se hi hoga
+//authToken dalenge or user ka detai milega bas usme password hi ni milega kyuki vo humne minus kiya hua hai
 router.post('/getuser',fetchuser, async (req, res) => {
 try {
     
