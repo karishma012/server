@@ -16,9 +16,10 @@ router.post('/createuser', [
     body('email', 'Enter a valid email').isEmail(),
     body('password', 'Enter a valid password').isLength({ min: 5 }),
 ], async (req, res) => {
+    let success = false;
     const errors = validationResult(req);  //yaha mai errors ko manage karri hu
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({success, errors: errors.array() });
     } //It is a kind of validation layer
 
 
@@ -29,10 +30,10 @@ router.post('/createuser', [
 
         let user = await User.findOne({ email: req.body.email });
         if (user) {
-            return res.status(400).json({ error: "sorry a user with same emailId already exists" })
+            return res.status(400).json({success, error: "sorry a user with same emailId already exists" })
         }
         const salt = await bcrypt.genSalt(10); //salt generate kia
-            //yaha mera JWT ka role aata hai
+        //yaha mera JWT ka role aata hai
         secPass = await bcrypt.hash(req.body.password, salt); //total password = password + salt
         //ab sab sahi raha toh ek naya user create hojayega
         user = await User.create({
@@ -57,7 +58,8 @@ router.post('/createuser', [
         const authtoken = jwt.sign(data, JWT_SECRET);
 
         // res.json(user)
-        res.json({ authtoken })
+        success=true;
+        res.json({success, authtoken })
     } catch (error) {
         console.log(error.message);
         res.status(500).send("Internal Server error occured");
@@ -67,59 +69,52 @@ router.post('/createuser', [
 //ROUTE 2 : now here we r going to create a similar page for login, here only email and password will be required so everything is copied and pasted
 
 router.post('/login', [
-
     body('email', 'Enter a valid email').isEmail(),
     body('password', 'password cannot be blank').exists(),
 ], async (req, res) => {
-
-    const errors = validationResult(req);  //yaha mai errors ko manage karri hu
+    let success = false;
+    const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
     const { email, password } = req.body;
     try {
-        //ek baar email ke lie check karo or
         let user = await User.findOne({ email });
         if (!user) {
+            success = false;
             return res.status(400).json({ error: "please try to login with correct credentials" });
         }
-        //yaha hum password ko database vale password se compare kar rahe hai
-        //ek baar password ke lie
         const passwordCompare = await bcrypt.compare(password, user.password);
-        //agar vo hamare haspassword ke equal nahi hua
         if (!passwordCompare) {
-            return res.status(400).json({ error: "please try to login with correct credentials" });
+            success = false;
+            return res.status(400).json({ success, error: "please try to login with correct credentials" });
         }
-        //verification
-        //again JWT ka usage
         const data = {
             user: {
                 id: user.id
             }
         };
         const authtoken = jwt.sign(data, JWT_SECRET);
+        success = true;
+        res.json({ success, authtoken });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send("Internal Server error occurred");
+    }
+});
 
-        // res.json(user)
-        res.json({ authtoken })
+//ROUTE :3 get user details . here we are finding user by id..sab kuch id se hi hoga
+//authToken dalenge or user ka detai milega bas usme password hi ni milega kyuki vo humne minus kiya hua hai
+router.post('/getuser', fetchuser, async (req, res) => {
+    try {
 
+        userId = req.user.id;
+        const user = await User.findById(userId).select('-password')
+        res.send(user)
     } catch (error) {
         console.log(error.message);
         res.status(500).send("Internal Server error occured");
     }
-
-})
-//ROUTE :3 get user details . here we are finding user by id..sab kuch id se hi hoga
-//authToken dalenge or user ka detai milega bas usme password hi ni milega kyuki vo humne minus kiya hua hai
-router.post('/getuser',fetchuser, async (req, res) => {
-try {
-    
-    userId = req.user.id;
-    const user = await User.findById(userId).select('-password')
-    res.send(user)
-} catch (error) {
-    console.log(error.message);
-    res.status(500).send("Internal Server error occured");
-}
 })
 
 module.exports = router
